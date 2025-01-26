@@ -13,7 +13,7 @@ client.remove_command("help")
 
 @client.event
 async def on_ready():
-    await client.change_presence(activity=discord.Game("/help"))
+    await client.change_presence(activity=discord.Game("h!help"))
     print("Success : Bot is connected to Discord")
 
 async def load():
