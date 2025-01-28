@@ -9,39 +9,48 @@ load_dotenv()
 class Reminder(commands.Cog):
     def __init__(self, client):
         self.client = client
-        self.reminder_loop.start()  # Start the loop when the cog is loaded
+        self.reminder_loop.start()
 
     def cog_unload(self):
-        self.reminder_loop.cancel()  # Stop the loop when the cog is unloaded
+        self.reminder_loop.cancel() 
+    
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print("✅ addReminder.py is ready.")
 
-    @tasks.loop(minutes=5)  # Runs every 5 minutes (change to hours=3 for production)
+    @tasks.loop(minutes=5)  # Change to hours=3 for production
     async def reminder_loop(self):
         """Checks for tasks with status 'pending' and sends reminders."""
         url = "https://habitude-habit-tracker.vercel.app/today/"
         token = os.getenv('BEARER_TOKEN')
-        channel_id = int(os.getenv('REMINDER_CHANNEL_ID'))  # Store your channel ID in .env
+        channel_id = int(os.getenv('REMINDER_CHANNEL_ID'))
+        user_id = os.getenv('USER_ID')
 
-        if token is None or channel_id is None:
-            print("❌ Missing environment variables: BEARER_TOKEN or REMINDER_CHANNEL_ID")
+        if token is None or channel_id is None or user_id is None:
+            print("❌ Missing environment variables: BEARER_TOKEN, REMINDER_CHANNEL_ID, or USER_ID")
             return
 
         headers = {"Authorization": f"Bearer {token}"}
-        
+
         try:
             response = requests.get(url, headers=headers)
             if response.status_code == 200:
                 data = response.json()
                 tasks = data.get('tasks', [])
 
-                # Filter only pending tasks
                 pending_tasks = [task for task in tasks if task.get('status', '').lower() == "pending"]
 
-                if pending_tasks:  # Only send reminder if there are pending tasks
+                if pending_tasks:  
                     channel = self.client.get_channel(channel_id)
                     if channel:
+                        mention = f"<@{user_id}>"  # Ensure correct mention format
+                        
+                        # First, send a normal message to trigger the ping
+                        await channel.send(f"{mention} ⏳ You have pending tasks! Don't forget to complete them!")
+
+                        # Then, send the embed with task details
                         embed = discord.Embed(
                             title="⏳ Pending Task Reminder!",
-                            description="You have tasks that are still pending. Don't forget to complete them! 📝",
                             color=discord.Color.orange()
                         )
 
