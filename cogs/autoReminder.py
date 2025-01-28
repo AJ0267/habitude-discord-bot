@@ -18,9 +18,8 @@ class Reminder(commands.Cog):
     async def on_ready(self):
         print("✅ addReminder.py is ready.")
 
-    @tasks.loop(minutes=5)  # Change to hours=3 for production
+    @tasks.loop(minutes=5) 
     async def reminder_loop(self):
-        """Checks for tasks with status 'pending' and sends reminders."""
         url = "https://habitude-habit-tracker.vercel.app/today/"
         token = os.getenv('BEARER_TOKEN')
         channel_id = int(os.getenv('REMINDER_CHANNEL_ID'))
@@ -43,12 +42,12 @@ class Reminder(commands.Cog):
                 if pending_tasks:  
                     channel = self.client.get_channel(channel_id)
                     if channel:
-                        mention = f"<@{user_id}>"  # Ensure correct mention format
+                        mention = f"<@{user_id}>" 
                         
-                        # First, send a normal message to trigger the ping
+                    
                         await channel.send(f"{mention} ⏳ You have pending tasks! Don't forget to complete them!")
 
-                        # Then, send the embed with task details
+                 
                         embed = discord.Embed(
                             title="⏳ Pending Task Reminder!",
                             color=discord.Color.orange()
